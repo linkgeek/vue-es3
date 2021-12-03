@@ -44,121 +44,116 @@
   </div>
 </template>
 <script>
-import SubHeader from '../components/SubHeader'
-import {Upload, Icon, Form, FormItem, Button, Input, Select, Option} from 'iview'
-import ImgUpload from '../components/ImgUpload'
+import SubHeader from "../components/SubHeader";
+import { Upload, Icon, Form, FormItem, Button, Input, Select, Option } from "iview";
+import ImgUpload from "../components/ImgUpload";
 
-export default{
-  components: {
-    subHeader: SubHeader,
-    ImgUpload,
-    Upload,
-    Icon,
-    Form,
-    FormItem,
-    Button,
-    Input,
-    Select,
-    Option
-  },
-  data () {
-    return {
-      channels: {},
-      videoName: '',
-      formValidate: {
-        name: ''
-      },
-      ruleValidate: {
-        name: [
-          {required: true, message: 'The name cannot be empty', trigger: 'blur'}
-        ],
-        cat_id: [
-          {required: true, message: 'type cannot be empty', trigger: 'change'}
-        ],
-        image: [
-          {required: true, message: 'image cannort be empty', trigger: 'blur'}
-        ],
-        url: [
-          {required: true, message: 'video cannort be empty', trigger: 'blur'}
-        ]
-      }
-    }
-  },
-  created () {
-    this.getChannels()
-  },
-  computed: {
-    channelData () {
-      let tmpArr = Object.keys(this.channels).map(key => ({key, name: this.channels[key]}))
-      // 将推荐项清除
-      tmpArr.shift()
-      return tmpArr
-    }
-  },
-  methods: {
-    getChannels () {
-      this.axios.get('/api/category').then(response => response.data).then(json => {
-        if (json.message === 'OK') {
-          this.channels = json.result
-        }
-      })
+export default {
+    components: {
+        subHeader: SubHeader,
+        ImgUpload,
+        Upload,
+        Icon,
+        Form,
+        FormItem,
+        Button,
+        Input,
+        Select,
+        Option,
     },
-    handleSubmit (name) {
-      this.$refs[name].validate((valid) => {
-        if (valid) {
-          this.$axios({
-            method: 'post',
-            url: '/api/video/add',
-            params: {
-              image: this.formValidate.image,
-              url: this.formValidate.url,
-              name: this.formValidate.name,
-              content: this.formValidate.desc,
-              cat_id: this.formValidate.cat_id
-            }
-          }).then(res => {
-            if (res.data.code === parseInt(200)) {
-              this.$Message.success('视频提交成功')
-              setTimeout(() => {
-                this.$router.push({path: 'my'})
-              }, 500)
+    data() {
+        return {
+            channels: {},
+            videoName: "",
+            formValidate: {
+                name: "",
+            },
+            ruleValidate: {
+                name: [{ required: true, message: "The name cannot be empty", trigger: "blur" }],
+                cat_id: [{ required: true, message: "type cannot be empty", trigger: "change" }],
+                image: [{ required: true, message: "image cannort be empty", trigger: "blur" }],
+                url: [{ required: true, message: "video cannort be empty", trigger: "blur" }],
+            },
+        };
+    },
+    created() {
+        this.getChannels();
+    },
+    computed: {
+        channelData() {
+            let tmpArr = Object.keys(this.channels).map((key) => ({ key, name: this.channels[key] }));
+            // 将推荐项清除
+            // tmpArr.shift();
+            return tmpArr;
+        },
+    },
+    methods: {
+        getChannels() {
+            this.axios
+                .get("/api/category")
+                .then((response) => response.data)
+                .then((json) => {
+                    if (json.message === "OK") {
+                        this.channels = json.result;
+                    }
+                });
+        },
+        handleSubmit(name) {
+            this.$refs[name].validate((valid) => {
+                if (valid) {
+                    this.$axios({
+                        method: "post",
+                        url: "/api/video/add",
+                        params: {
+                            image: this.formValidate.image,
+                            url: this.formValidate.url,
+                            name: this.formValidate.name,
+                            content: this.formValidate.desc,
+                            cat_id: this.formValidate.cat_id,
+                        },
+                    }).then((res) => {
+                        if (res.data.code === parseInt(200)) {
+                            this.$Message.success("视频提交成功");
+                            setTimeout(() => {
+                                this.$router.push({ path: "my" });
+                            }, 500);
+                        } else {
+                            this.$Message.error(res.message);
+                        }
+                    });
+                } else {
+                    this.$Message.warning("请校验表单是否合理");
+                }
+            });
+        },
+        handleReset(name) {
+            this.$refs[name].resetFields();
+        },
+        videoUploadSuccess(res, file) {
+            let result = res.result;
+            if (res.message === "OK") {
+                this.formValidate.url = result.url;
+                this.videoName = file.name;
             } else {
-              this.$Message.error(res.message)
+                this.$Message.error("视频上传失败： " + res.message);
             }
-          })
-        } else {
-          this.$Message.warning('请校验表单是否合理')
-        }
-      })
+        },
+        videoBeforeUp() {
+            this.videoName = "视频上传中，请等待...";
+        },
+        videoError() {
+            this.videoName = "";
+            this.$Message.error("视频上传失败");
+        },
+        imgUploadSuccess(url) {
+            this.formValidate.image = url;
+        },
     },
-    handleReset (name) {
-      this.$refs[name].resetFields()
-    },
-    videoUploadSuccess (res, file) {
-      let result = res.result
-      if (res.message === 'OK') {
-        this.formValidate.url = result.url
-        this.videoName = file.name
-      } else {
-        this.$Message.error('视频上传失败： ' + res.message)
-      }
-    },
-    videoBeforeUp () {
-      this.videoName = '视频上传中，请等待...'
-    },
-    videoError () {
-      this.videoName = ''
-      this.$Message.error('视频上传失败')
-    },
-    imgUploadSuccess (url) {
-      this.formValidate.image = url
-    }
-  }
-}
+};
 </script>
 <style>
 .container {
-  width: 660px;
-  margin: 0 auto;
+    width: 660px;
+    margin: 0 auto;
 }
 </style>
